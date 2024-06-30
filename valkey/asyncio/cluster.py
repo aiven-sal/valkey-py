@@ -25,19 +25,14 @@ from valkey._cache import (
     DEFAULT_EVICTION_POLICY,
     AbstractCache,
 )
-from valkey._parsers import AsyncCommandsParser, Encoder
+from valkey._parsers import AsyncCommandsParser, Encoder, parse_url
 from valkey._parsers.helpers import (
     _ValkeyCallbacks,
     _ValkeyCallbacksRESP2,
     _ValkeyCallbacksRESP3,
 )
 from valkey.asyncio.client import ResponseCallbackT
-from valkey.asyncio.connection import (
-    Connection,
-    DefaultParser,
-    SSLConnection,
-    parse_url,
-)
+from valkey.asyncio.connection import Connection, DefaultParser, SSLConnection
 from valkey.asyncio.lock import Lock
 from valkey.asyncio.retry import Retry
 from valkey.backoff import default_backoff
@@ -211,7 +206,7 @@ class ValkeyCluster(AbstractValkey, AbstractValkeyCluster, AsyncValkeyClusterCom
         :class:`~valkey.asyncio.connection.Connection` when created.
         In the case of conflicting arguments, querystring arguments are used.
         """
-        kwargs.update(parse_url(url))
+        kwargs.update(parse_url(url, True))
         if kwargs.pop("connection_class", None) is SSLConnection:
             kwargs["ssl"] = True
         return cls(**kwargs)

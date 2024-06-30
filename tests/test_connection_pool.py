@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 import valkey
-from valkey.connection import to_bool
+from valkey._parsers.url_parser import to_bool
 from valkey.utils import SSL_AVAILABLE
 
 from .conftest import _get_client, skip_if_server_version_lt

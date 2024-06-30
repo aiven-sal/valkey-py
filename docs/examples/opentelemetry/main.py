@@ -2,8 +2,8 @@
 
 import time
 
-import valkey
 import uptrace
+import valkey
 from opentelemetry import trace
 from opentelemetry.instrumentation.valkey import ValkeyInstrumentor
 

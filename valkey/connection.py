@@ -10,7 +10,6 @@ from itertools import chain
 from queue import Empty, Full, LifoQueue
 from time import time
 from typing import Any, Callable, List, Optional, Sequence, Type, Union
-from urllib.parse import parse_qs, unquote, urlparse
 
 from ._cache import (
     DEFAULT_ALLOW_LIST,
@@ -948,85 +947,6 @@ class UnixDomainSocketConnection(AbstractConnection):
 FALSE_STRINGS = ("0", "F", "FALSE", "N", "NO")
 
 
-def to_bool(value):
-    if value is None or value == "":
-        return None
-    if isinstance(value, str) and value.upper() in FALSE_STRINGS:
-        return False
-    return bool(value)
-
-
-URL_QUERY_ARGUMENT_PARSERS = {
-    "db": int,
-    "socket_timeout": float,
-    "socket_connect_timeout": float,
-    "socket_keepalive": to_bool,
-    "retry_on_timeout": to_bool,
-    "retry_on_error": list,
-    "max_connections": int,
-    "health_check_interval": int,
-    "ssl_check_hostname": to_bool,
-    "timeout": float,
-}
-
-
-def parse_url(url):
-    if not (
-        url.startswith("valkey://")
-        or url.startswith("valkeys://")
-        or url.startswith("unix://")
-    ):
-        raise ValueError(
-            "Valkey URL must specify one of the following "
-            "schemes (valkey://, valkeys://, unix://)"
-        )
-
-    url = urlparse(url)
-    kwargs = {}
-
-    for name, value in parse_qs(url.query).items():
-        if value and len(value) > 0:
-            value = unquote(value[0])
-            parser = URL_QUERY_ARGUMENT_PARSERS.get(name)
-            if parser:
-                try:
-                    kwargs[name] = parser(value)
-                except (TypeError, ValueError):
-                    raise ValueError(f"Invalid value for `{name}` in connection URL.")
-            else:
-                kwargs[name] = value
-
-    if url.username:
-        kwargs["username"] = unquote(url.username)
-    if url.password:
-        kwargs["password"] = unquote(url.password)
-
-    # We only support valkey://, valkeys:// and unix:// schemes.
-    if url.scheme == "unix":
-        if url.path:
-            kwargs["path"] = unquote(url.path)
-        kwargs["connection_class"] = UnixDomainSocketConnection
-
-    else:  # implied:  url.scheme in ("valkey", "valkeys"):
-        if url.hostname:
-            kwargs["host"] = unquote(url.hostname)
-        if url.port:
-            kwargs["port"] = int(url.port)
-
-        # If there's a path argument, use it as the db argument if a
-        # querystring value wasn't specified
-        if url.path and "db" not in kwargs:
-            try:
-                kwargs["db"] = int(unquote(url.path).replace("/", ""))
-            except (AttributeError, ValueError):
-                pass
-
-        if url.scheme == "valkeys":
-            kwargs["connection_class"] = SSLConnection
-
-    return kwargs
-
-
 class ConnectionPool:
     """
     Create a connection pool. ``If max_connections`` is set, then this
@@ -1080,8 +1000,9 @@ class ConnectionPool:
         class initializer. In the case of conflicting arguments, querystring
         arguments always win.
         """
-        url_options = parse_url(url)
+        from ._parsers.url_parser import parse_url
 
+        url_options = parse_url(url, False)
         if "connection_class" in kwargs:
             url_options["connection_class"] = kwargs["connection_class"]
 
