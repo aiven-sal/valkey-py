@@ -5,7 +5,8 @@ import pytest
 import pytest_asyncio
 import valkey.asyncio as valkey
 from tests.conftest import skip_if_server_version_lt
-from valkey.asyncio.connection import Connection, to_bool
+from valkey._parsers.url_parser import to_bool
+from valkey.asyncio.connection import Connection
 
 from .compat import aclosing, mock
 from .conftest import asynccontextmanager
@@ -441,8 +442,8 @@ class TestConnectionPoolURLParsing:
         with pytest.raises(ValueError) as cm:
             valkey.ConnectionPool.from_url("localhost")
         assert str(cm.value) == (
-            "Valkey URL must specify one of the following schemes "
-            "(valkey://, valkeys://, unix://)"
+            "Valkey URL must specify one of the following schemes ['valkey://', "
+            "'valkeys://', 'unix://', 'redis://', 'rediss://']"
         )
 
 

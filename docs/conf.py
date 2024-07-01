@@ -47,7 +47,7 @@ autosectionlabel_prefix_document = True
 autosectionlabel_maxdepth = 2
 
 # AutodocTypehints settings.
-autodoc_typehints = 'description'
+autodoc_typehints = "description"
 always_document_param_types = True
 typehints_defaults = "comma"
 

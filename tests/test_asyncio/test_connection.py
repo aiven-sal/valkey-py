@@ -11,9 +11,10 @@ from valkey._parsers import (
     _AsyncRESP2Parser,
     _AsyncRESP3Parser,
     _AsyncRESPBase,
+    parse_url,
 )
 from valkey.asyncio import ConnectionPool, Valkey
-from valkey.asyncio.connection import Connection, UnixDomainSocketConnection, parse_url
+from valkey.asyncio.connection import Connection, UnixDomainSocketConnection
 from valkey.asyncio.retry import Retry
 from valkey.backoff import NoBackoff
 from valkey.exceptions import ConnectionError, InvalidResponse, TimeoutError
@@ -300,7 +301,7 @@ async def test_pool_auto_close(request, from_url):
     """Verify that basic Valkey instances have auto_close_connection_pool set to True"""
 
     url: str = request.config.getoption("--valkey-url")
-    url_args = parse_url(url)
+    url_args = parse_url(url, True)
 
     async def get_valkey_connection():
         if from_url:
@@ -342,7 +343,7 @@ async def test_pool_auto_close_disable(request):
     """Verify that auto_close_connection_pool can be disabled (deprecated)"""
 
     url: str = request.config.getoption("--valkey-url")
-    url_args = parse_url(url)
+    url_args = parse_url(url, True)
 
     async def get_valkey_connection():
         url_args["auto_close_connection_pool"] = False
@@ -361,7 +362,7 @@ async def test_valkey_connection_pool(request, from_url):
     have auto_close_connection_pool set to False"""
 
     url: str = request.config.getoption("--valkey-url")
-    url_args = parse_url(url)
+    url_args = parse_url(url, True)
 
     pool = None
 
@@ -393,7 +394,7 @@ async def test_valkey_from_pool(request, from_url):
     have auto_close_connection_pool set to True"""
 
     url: str = request.config.getoption("--valkey-url")
-    url_args = parse_url(url)
+    url_args = parse_url(url, True)
 
     pool = None
 

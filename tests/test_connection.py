@@ -6,14 +6,9 @@ from unittest.mock import patch
 import pytest
 import valkey
 from valkey import ConnectionPool, Valkey
-from valkey._parsers import _HiredisParser, _RESP2Parser, _RESP3Parser
+from valkey._parsers import _HiredisParser, _RESP2Parser, _RESP3Parser, parse_url
 from valkey.backoff import NoBackoff
-from valkey.connection import (
-    Connection,
-    SSLConnection,
-    UnixDomainSocketConnection,
-    parse_url,
-)
+from valkey.connection import Connection, SSLConnection, UnixDomainSocketConnection
 from valkey.exceptions import ConnectionError, InvalidResponse, TimeoutError
 from valkey.retry import Retry
 from valkey.utils import HIREDIS_AVAILABLE
@@ -222,7 +217,7 @@ def test_pool_auto_close(request, from_url):
     """Verify that basic Valkey instances have auto_close_connection_pool set to True"""
 
     url: str = request.config.getoption("--valkey-url")
-    url_args = parse_url(url)
+    url_args = parse_url(url, False)
 
     def get_valkey_connection():
         if from_url:
@@ -240,7 +235,7 @@ def test_valkey_connection_pool(request, from_url):
     have auto_close_connection_pool set to False"""
 
     url: str = request.config.getoption("--valkey-url")
-    url_args = parse_url(url)
+    url_args = parse_url(url, True)
 
     pool = None
 
@@ -272,7 +267,7 @@ def test_valkey_from_pool(request, from_url):
     have auto_close_connection_pool set to True"""
 
     url: str = request.config.getoption("--valkey-url")
-    url_args = parse_url(url)
+    url_args = parse_url(url, True)
 
     pool = None
 
