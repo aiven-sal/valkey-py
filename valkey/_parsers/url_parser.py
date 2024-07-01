@@ -36,15 +36,11 @@ URL_QUERY_ARGUMENT_PARSERS: Mapping[str, Callable[..., object]] = MappingProxyTy
 
 
 def parse_url(url: str, async_connection: bool):
+    url_prefixes = ["valkey://", "valkeys://", "unix://", "redis://", "rediss://"]
 
-    if not (
-        url.startswith("valkey://")
-        or url.startswith("valkeys://")
-        or url.startswith("unix://")
-    ):
+    if not any(url.startswith(prefix) for prefix in url_prefixes):
         raise ValueError(
-            "Valkey URL must specify one of the following "
-            "schemes (valkey://, valkeys://, unix://)"
+            f"Valkey URL must specify one of the following schemes `{url_prefixes}`"
         )
 
     parsed: ParseResult = urlparse(url)
@@ -67,7 +63,7 @@ def parse_url(url: str, async_connection: bool):
     if parsed.password:
         kwargs["password"] = unquote(parsed.password)
 
-    # We only support valkey://, valkeys:// and unix:// schemes.
+    # We only support valkey://, valkeys://, redis://, rediss://, and unix:// schemes.
     if parsed.scheme == "unix":
         if parsed.path:
             kwargs["path"] = unquote(parsed.path)
@@ -77,7 +73,7 @@ def parse_url(url: str, async_connection: bool):
             else UnixDomainSocketConnection
         )
 
-    elif parsed.scheme in ("valkey", "valkeys"):
+    elif parsed.scheme in ("valkey", "valkeys", "redis", "rediss"):
         if parsed.hostname:
             kwargs["host"] = unquote(parsed.hostname)
         if parsed.port:
@@ -91,14 +87,13 @@ def parse_url(url: str, async_connection: bool):
             except (AttributeError, ValueError):
                 pass
 
-        if parsed.scheme == "valkeys":
+        if parsed.scheme in ("valkeys", "rediss"):
             kwargs["connection_class"] = (
                 SSLConnectionAsync if async_connection else SSLConnection
             )
     else:
-        valid_schemes = "valkey://, valkeys://, unix://"
         raise ValueError(
-            f"Valkey URL must specify one of the following schemes ({valid_schemes})"
+            f"Valkey URL must specify one of the following schemes ({url_prefixes})"
         )
 
     return kwargs
