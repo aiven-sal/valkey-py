@@ -40,7 +40,7 @@ def parse_url(url: str, async_connection: bool):
 
     if not any(url.startswith(prefix) for prefix in url_prefixes):
         raise ValueError(
-            f"Valkey URL must specify one of the following schemes `{url_prefixes}`"
+            f"Valkey URL must specify one of the following schemes {url_prefixes}"
         )
 
     parsed: ParseResult = urlparse(url)

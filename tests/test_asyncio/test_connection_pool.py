@@ -442,8 +442,8 @@ class TestConnectionPoolURLParsing:
         with pytest.raises(ValueError) as cm:
             valkey.ConnectionPool.from_url("localhost")
         assert str(cm.value) == (
-            "Valkey URL must specify one of the following schemes "
-            "(valkey://, valkeys://, unix://)"
+            "Valkey URL must specify one of the following schemes ['valkey://', 'valkeys://', 'unix://', 'redis://', "
+            "'rediss://']"
         )
 
 
