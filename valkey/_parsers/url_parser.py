@@ -37,6 +37,7 @@ URL_QUERY_ARGUMENT_PARSERS: Mapping[str, Callable[..., object]] = MappingProxyTy
 
 def parse_url(url: str, async_connection: bool):
     url_prefixes = ["valkey://", "valkeys://", "unix://", "redis://", "rediss://"]
+    supported_schemes = ["valkey", "valkeys", "redis", "rediss"]
 
     if not any(url.startswith(prefix) for prefix in url_prefixes):
         raise ValueError(
@@ -73,7 +74,7 @@ def parse_url(url: str, async_connection: bool):
             else UnixDomainSocketConnection
         )
 
-    elif parsed.scheme in ("valkey", "valkeys", "redis", "rediss"):
+    elif parsed.scheme in supported_schemes:
         if parsed.hostname:
             kwargs["host"] = unquote(parsed.hostname)
         if parsed.port:
